@@ -52,7 +52,6 @@ app.get('/empresas', function(req, res) {
                 res.contentType('application/json').status(200);
                 console.log(result);
                 res.send(JSON.stringify(result.rows));
-                console.log(88698);
             }
         });
         connection.release(
@@ -67,6 +66,46 @@ app.get('/empresas', function(req, res) {
     });
 });
 
-app.get('/departments/:departmentId', function(req, res) {});
+app.get('/volquetas', function(req, res) {
+    oracledb.getConnection(connectionProperties, (err, connection) => {
+        if (err) {
+            res.set('Content-Type', 'application/json');
+            res.status(500).send(JSON.stringify({
+                status: 500,
+                message: "Error en la conexión",
+                detailed_message: err.message
+            }));
+        }
 
-function handleAllDepartments(request, response) {}
+        connection.execute(selectVolquetas, {}, {
+            outFormat: oracledb.OBJECT
+        }, (err, result) => {
+            if (err) {
+                res.status(500).send(JSON.stringify({
+                    status: 500,
+                    message: "Error al obtener las empresas",
+                    detailed_message: err.message
+                }));
+            } else {
+                res.contentType('application/json').status(200);
+                console.log(result);
+                res.send(JSON.stringify(result.rows));
+            }
+        });
+        connection.release(
+            function(err) {
+                if (err) {
+                    console.error(err.message);
+                } else {
+                    console.log("GET /user_profiles : Connection released");
+                }
+            });
+
+    });
+});
+
+const selectVolquetas = "SELECT VO.PLACA, COVL.DESCRIPCION_COLOR AS COLOR_VOLQUETA, MOVO.DESCRIPCION_MODELO AS MODELO_VOLQUETA, MAVO.NOMBRE_MARCA AS MARCA, EM.NOMBRE AS EMPRESA FROM VOLQUETAS VO"+
+" INNER JOIN COLORES_VOLQUETAS COVL ON VO.ID_COLOR = COVL.ID_COLOR"+
+" INNER JOIN MODELOS_VOLQUETAS MOVO ON VO.ID_MODELO = MOVO.ID_MODELO"+
+" INNER JOIN MARCAS_VOLQUETAS MAVO ON MOVO.ID_MARCA = MAVO.ID_MARCA_VOLQUETA"+
+" INNER JOIN EMPRESAS EM ON VO.ID_EMPRESA = EM.NIT";
