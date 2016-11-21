@@ -18,6 +18,7 @@
   "homepage": "https://github.com/Pernett98/bd2-app#readme",
   "dependencies": {
     "body-parser": "^1.15.2",
+    "cors": "^2.8.1",
     "express": "^4.14.0",
     "oracledb": "^1.11.0"
   }
