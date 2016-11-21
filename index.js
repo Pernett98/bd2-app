@@ -210,7 +210,7 @@ let buildUpdateVolquetaStatement = (req) => {
     }
 
     statement += " WHERE PLACA = :PLACA";
-    bindValues.PLACA = req.body.PLACA;
+    bindValues.PLACA = req.query.PLACA;
     statement = "UPDATE VOLQUETAS SET " + statement;
 
     console.log({
@@ -290,8 +290,7 @@ app.delete('/volquetas', (req, res) => {
             }));
             return;
         }
-        console.log(req.body);
-        connection.execute('DELETE FROM VOLQUETAS WHERE PLACA = :PLACA', req.body.PLACA, {
+        connection.execute('DELETE FROM VOLQUETAS WHERE PLACA = :PLACA', [req.query.PLACA], {
             autoCommit: true,
             outFormat: oracledb.OBJECT
         }, (err, result) => {
@@ -300,7 +299,7 @@ app.delete('/volquetas', (req, res) => {
                 res.set('Content-Type', 'application/json');
                 res.status(400).send(JSON.stringify({
                     status: 400,
-                    message: err ? "Input Error" : "No existe una volqueta con esa placa",
+                    message: err ? "No se pudo eliminar la volqueta" : "No existe una volqueta con esa placa",
                     detailed_message: err ? err.message : ""
                 }));
             } else {
