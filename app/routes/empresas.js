@@ -1,5 +1,5 @@
 (() => {
     "use strict";
-    let empresasModel = require(../models/empresas); 
-
+    let empresasModel = require(../models/empresas);
+    console.log(empresasModel);
 })();

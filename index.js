@@ -8,8 +8,9 @@ let bodyParser = require('body-parser');
 const cors = require('cors')
 let PORT = process.env.PORT || 8089;
 
+
 var originsWhitelist = [
-    'http://localhost:9000', //this is my front-end url for development
+    'http://localhost:9089', //this is my front-end url for development
     'http://www.myproductionurl.com'
 ];
 
@@ -183,7 +184,7 @@ app.post('/volquetas', (req, res) => {
 
 });
 
-const selectVolquetas = "SELECT VO.PLACA, COVL.DESCRIPCION_COLOR AS COLOR_VOLQUETA, MOVO.DESCRIPCION_MODELO AS MODELO_VOLQUETA, MAVO.NOMBRE_MARCA AS MARCA, EM.NOMBRE AS EMPRESA FROM VOLQUETAS VO" +
+const selectVolquetas = "SELECT VO.PLACA, COVL.ID_COLOR, COVL.DESCRIPCION_COLOR AS COLOR_VOLQUETA, MOVO.ID_MODELO, MOVO.DESCRIPCION_MODELO AS MODELO_VOLQUETA, MAVO.ID_MARCA_VOLQUETA, MAVO.NOMBRE_MARCA AS MARCA, EM.NIT AS ID_EMPRESA, EM.NOMBRE AS EMPRESA FROM VOLQUETAS VO" +
     " INNER JOIN COLORES_VOLQUETAS COVL ON VO.ID_COLOR = COVL.ID_COLOR" +
     " INNER JOIN MODELOS_VOLQUETAS MOVO ON VO.ID_MODELO = MOVO.ID_MODELO" +
     " INNER JOIN MARCAS_VOLQUETAS MAVO ON MOVO.ID_MARCA = MAVO.ID_MARCA_VOLQUETA" +
