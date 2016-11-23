@@ -24,7 +24,9 @@ var corsOptions = {
 
 app.use(cors(corsOptions));
 
-var router = express.Router([{mergeParams: true}]);
+var router = express.Router([{
+    mergeParams: true
+}]);
 
 let connectionProperties = {
     user: process.env.DBAAS_USER_NAME || "us_manantial",
@@ -373,7 +375,9 @@ app.get('/marcas', function(req, res) {
             }));
         }
 
-        connection.execute("SELECT * FROM MARCAS_VOLQUETAS", {}, {
+        let statement = "SELECT * FROM MARCAS_VOLQUETAS"
+
+        connection.execute(statement, {}, {
             outFormat: oracledb.OBJECT
         }, (err, result) => {
             if (err) {
@@ -411,7 +415,15 @@ app.get('/modelos', function(req, res) {
             }));
         }
 
-        connection.execute("SELECT MODELOS_VOLQUETAS.ID_MODELO, MODELOS_VOLQUETAS.DESCRIPCION_MODELO, MARCAS_VOLQUETAS.NOMBRE_MARCA FROM MODELOS_VOLQUETAS INNER JOIN MARCAS_VOLQUETAS ON (MODELOS_VOLQUETAS.ID_MARCA = MARCAS_VOLQUETAS.ID_MARCA_VOLQUETA)", {}, {
+        let statement = "SELECT MODELOS_VOLQUETAS.ID_MODELO, MODELOS_VOLQUETAS.DESCRIPCION_MODELO, MARCAS_VOLQUETAS.NOMBRE_MARCA FROM MODELOS_VOLQUETAS INNER JOIN MARCAS_VOLQUETAS ON (MODELOS_VOLQUETAS.ID_MARCA = MARCAS_VOLQUETAS.ID_MARCA_VOLQUETA)";
+
+        if (req.query) {
+            if (req.query.ID_MARCA) {
+                statement += "WHERE ID_MARCA = " + req.query.ID_MARCA;
+            }
+        }
+
+        connection.execute(statement, {}, {
             outFormat: oracledb.OBJECT
         }, (err, result) => {
             if (err) {
@@ -637,4 +649,46 @@ app.post('/ventas_entradas', (req, res) => {
         );
     });
 
+});
+
+app.get('/entradas', function(req, res) {
+    oracledb.getConnection(connectionProperties, (err, connection) => {
+        if (err) {
+            res.set('Content-Type', 'application/json');
+            res.status(500).send(JSON.stringify({
+                status: 500,
+                message: "Error en la conexión",
+                detailed_message: err.message
+            }));
+        }
+
+        connection.execute("SELECT VE.ID_VENTA, VE.ID_VOLQUETA AS PLACA, EM.NOMBRE AS EMPRESA, VE.FECHA_VENTA, VE.VALOR_ENTRADA, VE.CANTIDAD_ENTRADAS, VE.ID_USUARIO, US.OBJ_PERSONA_USUARIO.NOMBRE AS NOMBRE_USUARIO" +
+            " FROM VENTAS_ENTRADAS VE" +
+            " INNER JOIN VOLQUETAS VO ON (VE.ID_VOLQUETA = VO.PLACA)" +
+            " INNER JOIN EMPRESAS EM ON (VO.ID_EMPRESA = EM.NIT)" +
+            " INNER JOIN USUARIOS US ON (VE.ID_USUARIO = US.ID_USUARIO)", {}, {
+                outFormat: oracledb.OBJECT
+            }, (err, result) => {
+                if (err) {
+                    res.status(500).send(JSON.stringify({
+                        status: 500,
+                        message: "Error al obtener las ventas de las entradas",
+                        detailed_message: err.message
+                    }));
+                } else {
+                    res.contentType('application/json').status(200);
+                    console.log(result);
+                    res.send(JSON.stringify(result.rows));
+                }
+            });
+        connection.release(
+            function(err) {
+                if (err) {
+                    console.error(err.message);
+                } else {
+                    console.log("GET /ventas_entradas : Connection released");
+                }
+            });
+
+    });
 });
