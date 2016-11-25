@@ -10,8 +10,8 @@ let PORT = process.env.PORT || 8089;
 
 
 var originsWhitelist = [
-    'http://localhost:9089', //this is my front-end url for development
-    'http://www.myproductionurl.com'
+    'http://localhost:9089',
+    'http://0.0.0.0:9098'
 ];
 
 var corsOptions = {
@@ -21,6 +21,17 @@ var corsOptions = {
     },
     credentials: true
 };
+
+//Funcion para evaluar la cantidad de llaves de un Objeto
+
+Object.size = function(obj) {
+    var size = 0, key;
+    for (key in obj) {
+        if (obj.hasOwnProperty(key)) size++;
+    }
+    return size;
+};
+
 
 app.use(cors(corsOptions));
 
@@ -461,10 +472,22 @@ app.get('/conductores', function(req, res) {
             }));
         }
 
-        connection.execute("SELECT C.ID_CONDUCTOR, C.OBJ_PER_CONDUCTOR.NOMBRE AS NOMBRE, C.OBJ_PER_CONDUCTOR.APELLIDO_1 AS APELLIDO_1 , C.OBJ_PER_CONDUCTOR.APELLIDO_2 AS APELLIDO_2, C.ID_VOLQUETA AS PLACA_VOLQUETA, E.NOMBRE AS EMPRESAS" +
+        let statement = "SELECT C.ID_CONDUCTOR, C.OBJ_PER_CONDUCTOR.NOMBRE AS NOMBRE, C.OBJ_PER_CONDUCTOR.APELLIDO_1 AS APELLIDO_1 , C.OBJ_PER_CONDUCTOR.APELLIDO_2 AS APELLIDO_2, C.ID_VOLQUETA AS PLACA_VOLQUETA, E.NOMBRE AS EMPRESAS" +
             " FROM CONDUCTORES C" +
             " INNER JOIN VOLQUETAS V ON (C.ID_VOLQUETA = V.PLACA)" +
-            " INNER JOIN EMPRESAS E ON (V.ID_EMPRESA = E.NIT)", {}, {
+            " INNER JOIN EMPRESAS E ON (V.ID_EMPRESA = E.NIT)";
+
+        if (Object.size(req.query) > 0) {
+          statement += " WHERE ";
+            if (req.query.ID_VOLQUETA) {
+                statement += "C.ID_VOLQUETA = '" + req.query.ID_VOLQUETA + "'";
+            }
+            if (req.query.ID_EMPRESA) {
+              statement += "V.ID_EMPRESA = '"+ req.query.ID_EMPRESA +"'";
+            }
+        }
+
+        connection.execute(statement, {}, {
                 outFormat: oracledb.OBJECT
             }, (err, result) => {
                 if (err) {
@@ -690,5 +713,46 @@ app.get('/entradas', function(req, res) {
                 }
             });
 
+    });
+});
+
+app.get('/contar_entradas', (req, res) => {
+  oracledb.getConnection(connectionProperties, (err, connection) => {
+      if (err) {
+          res.set('Content-Type', 'application/json');
+          res.status(500).send(JSON.stringify({
+              status: 500,
+              message: "Error en la conexión",
+              detailed_message: err.message
+          }));
+      } else {
+        let id_venta;
+        if (Object.size(req.query) > 0) {
+          id_venta = req.query.ID_VENTA;
+        } else {
+          return;
+        }
+
+        connection.execute("BEGIN :CANTIDAD_ENTRADAS := CONTAR_ENTRADAS("+ id_venta +"); END;", {
+          CANTIDAD_ENTRADAS: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
+        }, (err, result) => {
+          if (err) {
+            console.error(err.message);
+            return;
+          }
+          res.contentType('application/json').status(200);
+          res.send(JSON.stringify(result.outBinds));
+          console.log(result.outBinds);
+          connection.release(
+              function(err) {
+                  if (err) {
+                      console.error(err.message);
+                  } else {
+                      console.log("GET /ventas_entradas : Connection released");
+                  }
+              });
+
+        });
+      }
     });
 });
