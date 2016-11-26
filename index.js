@@ -70,6 +70,7 @@ app.get('/empresas', function(req, res) {
                 message: "Error en la conexión",
                 detailed_message: err.message
             }));
+            return;
         }
 
         connection.execute("SELECT * FROM EMPRESAS", {}, {
@@ -108,6 +109,7 @@ app.get('/volquetas', function(req, res) {
                 message: "Error en la conexión",
                 detailed_message: err.message
             }));
+            return;
         }
 
         connection.execute(selectVolquetas, {}, {
@@ -384,6 +386,7 @@ app.get('/marcas', function(req, res) {
                 message: "Error en la conexión",
                 detailed_message: err.message
             }));
+            return;
         }
 
         let statement = "SELECT * FROM MARCAS_VOLQUETAS"
@@ -424,6 +427,7 @@ app.get('/modelos', function(req, res) {
                 message: "Error en la conexión",
                 detailed_message: err.message
             }));
+            return;
         }
 
         let statement = "SELECT MODELOS_VOLQUETAS.ID_MODELO, MODELOS_VOLQUETAS.DESCRIPCION_MODELO, MARCAS_VOLQUETAS.NOMBRE_MARCA FROM MODELOS_VOLQUETAS INNER JOIN MARCAS_VOLQUETAS ON (MODELOS_VOLQUETAS.ID_MARCA = MARCAS_VOLQUETAS.ID_MARCA_VOLQUETA)";
@@ -470,6 +474,7 @@ app.get('/conductores', function(req, res) {
                 message: "Error en la conexión",
                 detailed_message: err.message
             }));
+            return;
         }
 
         let statement = "SELECT C.ID_CONDUCTOR, C.OBJ_PER_CONDUCTOR.NOMBRE AS NOMBRE, C.OBJ_PER_CONDUCTOR.APELLIDO_1 AS APELLIDO_1 , C.OBJ_PER_CONDUCTOR.APELLIDO_2 AS APELLIDO_2, C.ID_VOLQUETA AS PLACA_VOLQUETA, E.NOMBRE AS EMPRESAS" +
@@ -580,6 +585,7 @@ app.get('/ventas_entradas', function(req, res) {
                 message: "Error en la conexión",
                 detailed_message: err.message
             }));
+            return;
         }
 
         connection.execute("SELECT VE.ID_VENTA, VE.ID_VOLQUETA AS PLACA, EM.NOMBRE AS EMPRESA, VE.FECHA_VENTA, VE.VALOR_ENTRADA, VE.CANTIDAD_ENTRADAS, VE.ID_USUARIO, US.OBJ_PERSONA_USUARIO.NOMBRE AS NOMBRE_USUARIO" +
@@ -683,6 +689,7 @@ app.get('/entradas', function(req, res) {
                 message: "Error en la conexión",
                 detailed_message: err.message
             }));
+            return;
         }
 
         connection.execute("SELECT VE.ID_VENTA, VE.ID_VOLQUETA AS PLACA, EM.NOMBRE AS EMPRESA, VE.FECHA_VENTA, VE.VALOR_ENTRADA, VE.CANTIDAD_ENTRADAS, VE.ID_USUARIO, US.OBJ_PERSONA_USUARIO.NOMBRE AS NOMBRE_USUARIO" +
@@ -725,6 +732,7 @@ app.get('/contar_entradas', (req, res) => {
               message: "Error en la conexión",
               detailed_message: err.message
           }));
+          return;
       } else {
         let id_venta;
         if (Object.size(req.query) > 0) {
